@@ -260,20 +260,23 @@ let pinBuf='', pinPhase='', pinFirst='';
 let vData={name:'',id:'',pw:''}, rec=null;
 let cpBuf='', cpPhase='new', cpFirst='';
 
-// GET 요청 (checkUser, list)
-async function apiGet(params){
-  const u=new URL(API);
-  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-  const r=await fetch(u.toString(),{redirect:'follow'});
-  return r.json();
-}
-
-// POST 요청 - no-cors 우회: GAS는 GET만 CORS 허용하므로 모두 GET으로 변환
-async function apiCall(params){
-  const u=new URL(API);
-  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,encodeURIComponent(v)));
-  const r=await fetch(u.toString(),{redirect:'follow'});
-  return r.json();
+// JSONP로 GAS 호출 (CORS 우회)
+function apiGet(params){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'cb_' + Date.now();
+    const u = new URL(API);
+    Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+    u.searchParams.set('callback', cbName);
+    window[cbName] = function(data){
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    const script = document.createElement('script');
+    script.src = u.toString();
+    script.onerror = ()=>{ delete window[cbName]; reject(new Error('JSONP error')); };
+    document.body.appendChild(script);
+  });
 }
 
 // 액션별 API
