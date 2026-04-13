@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>내 비밀번호 보관함</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F0E8;--card:#FFFDF8;--primary:#2C5F2E;--pl:#4A8C4D;--accent:#E8A020;--danger:#C0392B;--text:#1A1A1A;--ts:#666;--border:#D8D0C0;--shadow:0 4px 20px rgba(0,0,0,.12);--r:20px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);max-width:480px;margin:0 auto}
+.screen{display:none}.screen.active{display:flex}
+#sName{position:fixed;inset:0;z-index:100;background:var(--primary);flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px 28px}
+.ti{font-size:72px}
+#sName h1{color:#fff;font-size:28px;font-weight:900;text-align:center;line-height:1.4}
+#sName p{color:rgba(255,255,255,.75);font-size:16px;text-align:center}
+.ni{width:100%;padding:18px 22px;border:3px solid rgba(255,255,255,.4);border-radius:18px;background:rgba(255,255,255,.15);color:#fff;font-size:22px;font-weight:700;font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center;transition:border-color .2s}
+.ni::placeholder{color:rgba(255,255,255,.5)}.ni:focus{border-color:rgba(255,255,255,.9)}
+.bn{width:100%;padding:18px;background:var(--accent);color:#fff;border:none;border-radius:16px;font-size:20px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:8px;box-shadow:0 6px 20px rgba(232,160,32,.4)}
+.bn:active{transform:scale(.97)}.nerr{color:#FFB3B3;font-size:15px;font-weight:700;min-height:22px;text-align:center}
+#sPin{position:fixed;inset:0;z-index:100;background:var(--primary);flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px 24px}
+.pb{background:rgba(255,255,255,.18);border-radius:50px;padding:10px 24px;color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
+#sPin h2{color:#fff;font-size:22px;font-weight:900;text-align:center}
+.dots{display:flex;gap:20px}
+.dot{width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,.6);background:transparent;transition:background .2s,transform .1s}
+.dot.on{background:#fff;border-color:#fff;transform:scale(1.15)}
+.ph{color:rgba(255,255,255,.7);font-size:14px;text-align:center}.pe{color:#FFB3B3;font-size:16px;font-weight:700;min-height:24px;text-align:center}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:280px}
+.pb2{background:rgba(255,255,255,.15);border:none;border-radius:16px;color:#fff;font-size:28px;font-weight:700;font-family:'Noto Sans KR',sans-serif;padding:20px 0;cursor:pointer;transition:background .15s,transform .1s}
+.pb2:active{background:rgba(255,255,255,.35);transform:scale(.94)}
+.pb2.del{font-size:22px}.pb2.back{background:transparent;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);line-height:1.4}
+#sLoad{position:fixed;inset:0;z-index:999;background:var(--primary);flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.sp{width:52px;height:52px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#sLoad p{color:rgba(255,255,255,.8);font-size:16px;font-weight:700}
+#sApp{flex-direction:column;min-height:100vh}
+.hdr{background:var(--primary);padding:20px 20px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.ht{display:flex;align-items:center;justify-content:space-between}
+.hdr h1{color:#fff;font-size:20px;font-weight:900}
+.hs{color:rgba(255,255,255,.7);font-size:13px;margin-top:2px}
+.hr{display:flex;gap:8px}
+.bi{width:46px;height:46px;border-radius:13px;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bi:active{background:rgba(255,255,255,.35)}
+.sw{padding:16px 16px 8px}
+.sb{width:100%;padding:14px 18px;border:2px solid var(--border);border-radius:50px;background:var(--card);font-size:17px;font-family:'Noto Sans KR',sans-serif;outline:none;color:var(--text)}
+.sb:focus{border-color:var(--primary)}
+.lw{padding:8px 16px 120px;flex:1}
+.es{text-align:center;padding:60px 20px;color:var(--ts)}
+.ei{font-size:56px;margin-bottom:16px}
+.es p{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}.es span{font-size:15px}
+.ac{background:var(--card);border-radius:var(--r);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);border:2px solid transparent;transition:border-color .2s}
+.ac.open{border-color:var(--primary)}
+.ch{display:flex;align-items:center;padding:18px;cursor:pointer;gap:14px;user-select:none}
+.ci{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--pl));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;color:#fff;font-weight:900}
+.ct{flex:1}.cn{font-size:19px;font-weight:700}.cd{font-size:13px;color:var(--ts);margin-top:2px}
+.ca{font-size:20px;color:var(--ts);transition:transform .3s;flex-shrink:0}
+.ac.open .ca{transform:rotate(180deg)}
+.cb{max-height:0;overflow:hidden;transition:max-height .4s ease;background:#f7f4ef}
+.ac.open .cb{max-height:600px}
+.cbi{padding:4px 18px 18px}
+.fr{margin-bottom:14px}
+.fl{font-size:13px;color:var(--ts);font-weight:700;margin-bottom:6px;letter-spacing:.5px}
+.fvw{display:flex;align-items:center;gap:10px}
+.fv{flex:1;background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 16px;font-size:18px;font-weight:700;letter-spacing:1px;word-break:break-all;min-height:52px;display:flex;align-items:center}
+.fv.mk{letter-spacing:4px;font-size:22px}
+.bc{flex-shrink:0;padding:14px 18px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap}
+.bc:active{transform:scale(.95)}.bc.cp{background:var(--accent)}
+.bs{flex-shrink:0;padding:14px;background:#eee;border:2px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer}
+.cx{display:flex;gap:10px;margin-top:6px}
+.be{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--card);font-size:15px;font-weight:700;color:var(--text);font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.bd{padding:12px 18px;border-radius:12px;border:2px solid #ffcccc;background:#fff5f5;font-size:15px;font-weight:700;color:var(--danger);font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.fab{position:fixed;bottom:32px;right:50%;transform:translateX(50%);max-width:200px;width:calc(100% - 40px);background:var(--accent);color:#fff;border:none;border-radius:50px;padding:18px 28px;font-size:18px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(232,160,32,.5);display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .15s;z-index:50}
+.fab:active{transform:translateX(50%) scale(.96)}
+.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center}
+.mo.show{display:flex}
+.md{background:var(--card);border-radius:28px 28px 0 0;width:100%;max-width:480px;padding:24px 20px 40px;max-height:92vh;overflow-y:auto;animation:su .3s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mh{width:48px;height:5px;background:var(--border);border-radius:3px;margin:0 auto 20px}
+.mt{font-size:22px;font-weight:900;margin-bottom:24px;text-align:center}
+.tabs{display:flex;gap:8px;margin-bottom:24px}
+.tab{flex:1;padding:14px 8px;border-radius:14px;border:2px solid var(--border);background:var(--card);font-size:14px;font-weight:700;color:var(--ts);font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.tab .ti2{font-size:24px}.tab.on{border-color:var(--primary);background:#e8f5e9;color:var(--primary)}
+.tp{display:none}.tp.on{display:block}
+.fg{margin-bottom:18px}
+.lb{font-size:16px;font-weight:700;margin-bottom:8px;display:block}
+.fi{width:100%;padding:16px 18px;border:2px solid var(--border);border-radius:14px;font-size:18px;font-family:'Noto Sans KR',sans-serif;outline:none;background:var(--card);color:var(--text)}
+.fi:focus{border-color:var(--primary)}
+.bp{width:100%;padding:18px;background:var(--primary);color:#fff;border:none;border-radius:16px;font-size:18px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:8px}
+.bp:active{transform:scale(.98)}.bp:disabled{opacity:.6;cursor:not-allowed}
+.bsc{width:100%;padding:16px;background:transparent;color:var(--ts);border:2px solid var(--border);border-radius:16px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:10px}
+.vs{text-align:center;padding:20px 10px}
+.vl{font-size:20px;font-weight:900;margin-bottom:8px}
+.vhi{font-size:15px;color:var(--ts);margin-bottom:28px}
+.vb{width:100px;height:100px;border-radius:50%;border:4px solid var(--primary);background:#e8f5e9;font-size:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.vb.rec{background:#ffebee;border-color:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.vr{background:var(--bg);border-radius:14px;padding:16px;font-size:20px;font-weight:700;min-height:56px;display:flex;align-items:center;justify-content:center;color:var(--primary);word-break:break-all;border:2px dashed var(--border);margin-bottom:16px}
+.pa{border:3px dashed var(--border);border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:16px}
+.pa:hover{border-color:var(--primary)}.poi{font-size:48px;margin-bottom:12px}
+.pa p{font-size:17px;font-weight:700;margin-bottom:6px}.pa span{font-size:14px;color:var(--ts)}
+.so{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.so.show{display:flex}
+.sb2{background:var(--card);border-radius:24px;padding:32px 24px;width:100%;max-width:320px;text-align:center}
+.sb2 h2{font-size:20px;font-weight:900;margin-bottom:24px}
+.mnp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px}
+.mb{color:#333;background:#f0f0f0;border:none;border-radius:12px;padding:16px 0;font-size:22px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.mb:active{background:#ddd;transform:scale(.94)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:14px 24px;border-radius:50px;font-size:16px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s,bottom .3s;white-space:nowrap}
+.toast.show{opacity:1;bottom:110px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="sLoad" class="screen">
+  <div class="sp"></div><p>불러오는 중...</p>
+</div>
+
+<div id="sName" class="screen active">
+  <div class="ti">🔐</div>
+  <h1>내 비밀번호<br>보관함</h1>
+  <p>사용자 이름을 입력해 주세요</p>
+  <div style="width:100%">
+    <input class="ni" type="text" id="nameInput" placeholder="예: 아버지, 정원희" autocomplete="off" autocorrect="off" onkeydown="if(event.key==='Enter')submitName()">
+    <button class="bn" onclick="submitName()">다음 →</button>
+  </div>
+  <div class="nerr" id="nameError"></div>
+</div>
+
+<div id="sPin" class="screen">
+  <div class="pb">👤 <span id="pinUserLabel"></span></div>
+  <h2 id="pinTitle">비밀번호를 눌러주세요</h2>
+  <div class="dots">
+    <div class="dot" id="d0"></div><div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div><div class="dot" id="d3"></div>
+  </div>
+  <div class="ph" id="pinHint"></div>
+  <div class="pe" id="pinError"></div>
+  <div class="pad">
+    <button class="pb2" onclick="pinInput('1')">1</button>
+    <button class="pb2" onclick="pinInput('2')">2</button>
+    <button class="pb2" onclick="pinInput('3')">3</button>
+    <button class="pb2" onclick="pinInput('4')">4</button>
+    <button class="pb2" onclick="pinInput('5')">5</button>
+    <button class="pb2" onclick="pinInput('6')">6</button>
+    <button class="pb2" onclick="pinInput('7')">7</button>
+    <button class="pb2" onclick="pinInput('8')">8</button>
+    <button class="pb2" onclick="pinInput('9')">9</button>
+    <button class="pb2 back" onclick="goToName()">이름<br>변경</button>
+    <button class="pb2" onclick="pinInput('0')">0</button>
+    <button class="pb2 del" onclick="pinDelete()">⌫</button>
+  </div>
+</div>
+
+<div id="sApp" class="screen">
+  <div class="hdr">
+    <div class="ht">
+      <div><h1>🔐 비밀번호 보관함</h1><div class="hs" id="accountCount"></div></div>
+      <div class="hr">
+        <button class="bi" onclick="showSettings()">⚙️</button>
+        <button class="bi" onclick="logout()">🚪</button>
+      </div>
+    </div>
+  </div>
+  <div class="sw"><input type="search" class="sb" placeholder="🔍  사이트 이름 검색..." id="searchBox" oninput="renderList()" autocomplete="off"></div>
+  <div class="lw" id="listWrap"></div>
+  <button class="fab" onclick="openAddModal()">➕ 계정 추가하기</button>
+</div>
+
+<div class="mo" id="addModal">
+  <div class="md">
+    <div class="mh"></div>
+    <div class="mt" id="modalTitle">새 계정 추가</div>
+    <div class="tabs">
+      <div class="tab on" onclick="switchMethod('text')" id="tab-text"><span class="ti2">⌨️</span>직접 입력</div>
+      <div class="tab" onclick="switchMethod('voice')" id="tab-voice"><span class="ti2">🎤</span>음성 입력</div>
+      <div class="tab" onclick="switchMethod('photo')" id="tab-photo"><span class="ti2">📷</span>사진 촬영</div>
+    </div>
+    <div class="tp on" id="panel-text">
+      <div class="fg"><label class="lb">📱 사이트/앱 이름</label><input class="fi" type="text" id="txtName" placeholder="예: 네이버, 카카오" autocomplete="off"></div>
+      <div class="fg"><label class="lb">👤 아이디</label><input class="fi" type="text" id="txtId" placeholder="아이디를 입력하세요" autocomplete="off"></div>
+      <div class="fg"><label class="lb">🔑 비밀번호</label><input class="fi" type="text" id="txtPw" placeholder="비밀번호를 입력하세요" autocomplete="off"></div>
+      <button class="bp" id="btnSave" onclick="saveAccount()">💾 저장하기</button>
+      <button class="bsc" onclick="closeModal()">취소</button>
+    </div>
+    <div class="tp" id="panel-voice">
+      <div class="vs" id="vs1">
+        <div class="vl">1단계: 사이트/앱 이름</div><div class="vhi">버튼을 누르고 말씀해 주세요</div>
+        <button class="vb" id="vb1" onclick="startVoice('name')">🎤</button>
+        <div class="vr" id="vr1">여기에 인식된 내용이 표시됩니다</div>
+        <button class="bp" id="vn1" onclick="goVS(2)" style="display:none">다음 → 아이디 입력</button>
+      </div>
+      <div class="vs" id="vs2" style="display:none">
+        <div class="vl">2단계: 아이디</div><div class="vhi">아이디를 말씀해 주세요</div>
+        <button class="vb" id="vb2" onclick="startVoice('id')">🎤</button>
+        <div class="vr" id="vr2">여기에 인식된 내용이 표시됩니다</div>
+        <button class="bp" id="vn2" onclick="goVS(3)" style="display:none">다음 → 비밀번호 입력</button>
+      </div>
+      <div class="vs" id="vs3" style="display:none">
+        <div class="vl">3단계: 비밀번호</div><div class="vhi">비밀번호를 말씀해 주세요</div>
+        <button class="vb" id="vb3" onclick="startVoice('pw')">🎤</button>
+        <div class="vr" id="vr3">여기에 인식된 내용이 표시됩니다</div>
+        <button class="bp" id="vsave" onclick="saveVoice()" style="display:none">💾 저장하기</button>
+      </div>
+      <button class="bsc" onclick="closeModal()">취소</button>
+    </div>
+    <div class="tp" id="panel-photo">
+      <p style="font-size:15px;color:var(--ts);margin-bottom:16px;text-align:center">아이디/비밀번호가 적힌 메모나 화면을 촬영해 주세요.<br>AI가 자동으로 읽어드립니다.</p>
+      <div class="pa" onclick="document.getElementById('photoInput').click()">
+        <div class="poi">📷</div><p>여기를 누르면 카메라가 열립니다</p><span>사진첩에서 선택도 가능합니다</span>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(event)" style="display:none">
+      <img id="photoPreview" style="width:100%;border-radius:14px;margin-bottom:16px;display:none" alt="">
+      <div id="ocrStatus" style="font-size:14px;color:var(--ts);text-align:center;padding:10px"></div>
+      <div id="ocrFields" style="display:none">
+        <div class="fg"><label class="lb">📱 사이트/앱 이름 확인</label><input class="fi" type="text" id="ocrName" autocomplete="off"></div>
+        <div class="fg"><label class="lb">👤 아이디 확인</label><input class="fi" type="text" id="ocrId" autocomplete="off"></div>
+        <div class="fg"><label class="lb">🔑 비밀번호 확인</label><input class="fi" type="text" id="ocrPw" autocomplete="off"></div>
+        <button class="bp" onclick="saveOcr()">💾 저장하기</button>
+      </div>
+      <button class="bsc" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div class="so" id="settingsOverlay">
+  <div class="sb2">
+    <h2>⚙️ 설정</h2>
+    <div id="settingsContent">
+      <p style="font-size:15px;color:var(--ts);margin-bottom:24px">PIN 번호를 변경합니다</p>
+      <button class="bp" onclick="startChangePin()">🔑 비밀번호 변경</button>
+      <button class="bsc" onclick="closeSettings()">닫기</button>
+    </div>
+    <div id="changePinContent" style="display:none">
+      <p id="cpMsg" style="font-size:15px;color:var(--ts);margin-bottom:14px">새 PIN 4자리를 입력하세요</p>
+      <div class="dots" style="justify-content:center;margin-bottom:10px">
+        <div class="dot" id="cd0"></div><div class="dot" id="cd1"></div>
+        <div class="dot" id="cd2"></div><div class="dot" id="cd3"></div>
+      </div>
+      <div id="cpErr" style="color:var(--danger);font-size:13px;min-height:18px;margin-bottom:10px"></div>
+      <div class="mnp">
+        <button class="mb" onclick="cpInput('1')">1</button><button class="mb" onclick="cpInput('2')">2</button><button class="mb" onclick="cpInput('3')">3</button>
+        <button class="mb" onclick="cpInput('4')">4</button><button class="mb" onclick="cpInput('5')">5</button><button class="mb" onclick="cpInput('6')">6</button>
+        <button class="mb" onclick="cpInput('7')">7</button><button class="mb" onclick="cpInput('8')">8</button><button class="mb" onclick="cpInput('9')">9</button>
+        <button class="mb" onclick="cpInput('0')">0</button><button class="mb" onclick="cpDelete()">⌫</button>
+      </div>
+      <button class="bsc" onclick="cancelCP()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ★ GAS 배포 URL (변경하지 마세요)
+const API = 'https://script.google.com/macros/s/AKfycbyoGfDG2ZrO21Fq7lT8DJrFqy0FLONv6_P6ze79PjeymUzQ8UnEGs6EwmfDo_zwE9oa/exec';
+
+let currentUser='', accounts=[], editingId=null;
+let pinBuf='', pinPhase='', pinFirst='';
+let vData={name:'',id:'',pw:''}, rec=null;
+let cpBuf='', cpPhase='new', cpFirst='';
+
+// GET 요청 (checkUser, list)
+async function apiGet(params){
+  const u=new URL(API);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u.toString(),{redirect:'follow'});
+  return r.json();
+}
+
+// POST 요청 - no-cors 우회: GAS는 GET만 CORS 허용하므로 모두 GET으로 변환
+async function apiCall(params){
+  const u=new URL(API);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,encodeURIComponent(v)));
+  const r=await fetch(u.toString(),{redirect:'follow'});
+  return r.json();
+}
+
+// 액션별 API
+async function apiCheckUser(user,pin){ return apiGet({action:'checkUser',user,pin}); }
+async function apiRegisterUser(user,pin){ return apiGet({action:'registerUser',user,pin}); }
+async function apiList(user){ return apiGet({action:'list',user}); }
+async function apiAdd(user,name,userId,password){ return apiGet({action:'add',user,name,userId,password}); }
+async function apiUpdate(id,user,name,userId,password){ return apiGet({action:'update',id,user,name,userId,password}); }
+async function apiDelete(id,user){ return apiGet({action:'delete',id,user}); }
+async function apiChangePin(user,pin){ return apiGet({action:'changePin',user,pin}); }
+
+function ss(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+document.getElementById('addModal').addEventListener('click',function(e){ if(e.target===this)closeModal(); });
+
+async function submitName(){
+  const name=document.getElementById('nameInput').value.trim();
+  if(!name){ document.getElementById('nameError').textContent='이름을 입력해 주세요'; return; }
+  document.getElementById('nameError').textContent='';
+  ss('sLoad');
+  try{
+    const res=await apiCheckUser(name,'__probe__');
+    currentUser=name;
+    document.getElementById('pinUserLabel').textContent=name;
+    if(res.status==='newUser'){
+      pinPhase='register';
+      document.getElementById('pinTitle').textContent='사용할 비밀번호를 설정해 주세요';
+      document.getElementById('pinHint').textContent='처음 사용 시 4자리를 직접 정하세요';
+    } else {
+      pinPhase='login';
+      document.getElementById('pinTitle').textContent='비밀번호를 눌러주세요';
+      document.getElementById('pinHint').textContent='';
+    }
+    pinBuf=''; pinFirst=''; dots(pinBuf);
+    document.getElementById('pinError').textContent='';
+    ss('sPin');
+  }catch(e){ ss('sName'); document.getElementById('nameError').textContent='오류: '+(e.message||'연결 실패'); }
+}
+
+function goToName(){ pinBuf=''; pinFirst=''; document.getElementById('nameInput').value=''; ss('sName'); }
+
+function dots(buf,pre='d'){ for(let i=0;i<4;i++) document.getElementById(pre+i).classList.toggle('on',i<buf.length); }
+function pinInput(n){ if(pinBuf.length>=4)return; pinBuf+=n; dots(pinBuf); if(pinBuf.length===4)setTimeout(processPin,120); }
+function pinDelete(){ pinBuf=pinBuf.slice(0,-1); dots(pinBuf); }
+
+async function processPin(){
+  if(pinPhase==='login'){
+    ss('sLoad');
+    const res=await apiCheckUser(currentUser,pinBuf);
+    if(res.status==='ok'){ await unlock(); }
+    else{ ss('sPin'); document.getElementById('pinError').textContent='틀렸습니다'; pinBuf=''; dots(pinBuf); setTimeout(()=>document.getElementById('pinError').textContent='',1800); }
+  } else if(pinPhase==='register'){
+    pinFirst=pinBuf; pinBuf=''; pinPhase='register_confirm';
+    document.getElementById('pinTitle').textContent='한 번 더 입력해 주세요';
+    document.getElementById('pinHint').textContent='같은 번호를 다시 눌러주세요';
+    dots(pinBuf);
+  } else if(pinPhase==='register_confirm'){
+    if(pinBuf===pinFirst){
+      ss('sLoad');
+      await apiRegisterUser(currentUser,pinBuf);
+      await unlock();
+    } else {
+      document.getElementById('pinError').textContent='번호가 다릅니다. 다시 입력해 주세요';
+      pinBuf=''; pinFirst=''; pinPhase='register';
+      document.getElementById('pinTitle').textContent='사용할 비밀번호를 설정해 주세요';
+      document.getElementById('pinHint').textContent='';
+      dots(pinBuf);
+      setTimeout(()=>document.getElementById('pinError').textContent='',2000);
+    }
+  }
+}
+
+async function unlock(){
+  const res=await apiList(currentUser);
+  accounts=res.data||[];
+  document.getElementById('accountCount').textContent=currentUser+' · 계정 '+accounts.length+'개';
+  document.getElementById('searchBox').value='';
+  renderList(); ss('sApp');
+}
+
+function logout(){ currentUser=''; accounts=[]; pinBuf=''; pinFirst=''; document.getElementById('nameInput').value=''; ss('sName'); }
+
+function renderList(){
+  const q=document.getElementById('searchBox').value.trim().toLowerCase();
+  const f=q?accounts.filter(a=>a.name.toLowerCase().includes(q)):accounts;
+  const w=document.getElementById('listWrap');
+  document.getElementById('accountCount').textContent=currentUser+' · 계정 '+accounts.length+'개';
+  if(!f.length){ w.innerHTML='<div class="es"><div class="ei">'+(q?'🔍':'📭')+'</div><p>'+(q?'검색 결과가 없습니다':'아직 등록된 계정이 없어요')+'</p><span>'+(q?'다른 이름으로 검색해 보세요':'아래 버튼을 눌러 추가해 보세요')+'</span></div>'; return; }
+  w.innerHTML=f.map(a=>'<div class="ac" id="c'+a.id+'"><div class="ch" onclick="tc(\''+a.id+'\')"><div class="ci">'+emoji(a.name)+'</div><div class="ct"><div class="cn">'+esc(a.name)+'</div><div class="cd">'+esc(mid(a.userId))+'</div></div><span class="ca">▼</span></div><div class="cb"><div class="cbi"><div class="fr"><div class="fl">👤 아이디</div><div class="fvw"><div class="fv">'+esc(a.userId)+'</div><button class="bc" onclick="cp2(\''+ea(a.userId)+'\',this)">복사</button></div></div><div class="fr"><div class="fl">🔑 비밀번호</div><div class="fvw"><div class="fv mk" id="pw'+a.id+'">●●●●●●●●</div><button class="bs" id="sb'+a.id+'" onclick="tpw(\''+a.id+'\',\''+ea(a.password)+'\')">👁️</button><button class="bc" onclick="cp2(\''+ea(a.password)+'\',this)">복사</button></div></div><div class="cx"><button class="be" onclick="openEdit(\''+a.id+'\')">✏️ 수정</button><button class="bd" onclick="del(\''+a.id+'\')">🗑️ 삭제</button></div></div></div></div>').join('');
+}
+
+function tc(id){ document.getElementById('c'+id).classList.toggle('open'); }
+function tpw(id,pw){ const el=document.getElementById('pw'+id),btn=document.getElementById('sb'+id); if(el.textContent==='●●●●●●●●'){el.textContent=pw;el.classList.remove('mk');btn.textContent='🙈';}else{el.textContent='●●●●●●●●';el.classList.add('mk');btn.textContent='👁️';} }
+function emoji(n){ const m={'네이버':'N','카카오':'K','쿠팡':'C','구글':'G','다음':'D','인스타':'📸','유튜브':'▶','페이스북':'F','은행':'🏦','카드':'💳'}; for(const[k,v]of Object.entries(m))if(n.includes(k))return v; return n.slice(0,1).toUpperCase(); }
+function mid(id){ if(!id)return''; return id.length<=3?id[0]+'●●':id.slice(0,3)+'●'.repeat(Math.min(id.length-3,5)); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ea(s){ return String(s||'').replace(/'/g,'&#39;'); }
+
+async function cp2(text,btn){
+  try{await navigator.clipboard.writeText(text);}catch(e){const t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}
+  const o=btn.textContent; btn.textContent='✅'; btn.classList.add('cp');
+  toast('📋 복사되었습니다!');
+  setTimeout(()=>{btn.textContent=o;btn.classList.remove('cp');},1800);
+}
+
+function openAddModal(){ editingId=null; document.getElementById('modalTitle').textContent='새 계정 추가'; ['txtName','txtId','txtPw'].forEach(id=>document.getElementById(id).value=''); resetV();resetP();switchMethod('text'); document.getElementById('addModal').classList.add('show'); }
+function openEdit(id){ const a=accounts.find(x=>x.id===id);if(!a)return; editingId=id; document.getElementById('modalTitle').textContent='계정 수정'; document.getElementById('txtName').value=a.name; document.getElementById('txtId').value=a.userId; document.getElementById('txtPw').value=a.password; switchMethod('text'); document.getElementById('addModal').classList.add('show'); }
+function closeModal(){ document.getElementById('addModal').classList.remove('show'); if(rec){try{rec.stop();}catch(e){}rec=null;} }
+function switchMethod(m){ ['text','voice','photo'].forEach(k=>{document.getElementById('tab-'+k).classList.toggle('on',k===m);document.getElementById('panel-'+k).classList.toggle('on',k===m);}); if(m==='voice')resetV(); if(m==='photo')resetP(); }
+
+async function saveAccount(){
+  const name=document.getElementById('txtName').value.trim(),userId=document.getElementById('txtId').value.trim(),password=document.getElementById('txtPw').value.trim();
+  if(!name||!userId||!password){toast('⚠️ 모든 항목을 입력해 주세요');return;}
+  const btn=document.getElementById('btnSave'); btn.disabled=true; btn.textContent='저장 중...';
+  try{
+    if(editingId){
+      await apiUpdate(editingId,currentUser,name,userId,password);
+      const i=accounts.findIndex(a=>a.id===editingId); if(i>-1)accounts[i]={...accounts[i],name,userId,password};
+      toast('✅ 수정되었습니다');
+    }else{
+      const res=await apiAdd(currentUser,name,userId,password);
+      accounts.push({id:res.id,name,userId,password});
+      toast('✅ 저장되었습니다');
+    }
+    closeModal();renderList();
+  }catch(e){toast('⚠️ 저장 실패');}
+  finally{btn.disabled=false;btn.textContent='💾 저장하기';}
+}
+
+async function del(id){ if(!confirm('정말 삭제할까요?'))return; await apiDelete(id,currentUser); accounts=accounts.filter(a=>a.id!==id); renderList();toast('🗑️ 삭제되었습니다'); }
+
+function resetV(){ vData={name:'',id:'',pw:''}; document.getElementById('vs1').style.display='block'; document.getElementById('vs2').style.display='none'; document.getElementById('vs3').style.display='none'; ['vr1','vr2','vr3'].forEach(id=>document.getElementById(id).textContent='여기에 인식된 내용이 표시됩니다'); ['vn1','vn2','vsave'].forEach(id=>document.getElementById(id).style.display='none'); ['vb1','vb2','vb3'].forEach(id=>{const b=document.getElementById(id);b.classList.remove('rec');b.textContent='🎤';}); if(rec){try{rec.stop();}catch(e){}rec=null;} }
+function goVS(s){ document.getElementById('vs'+(s-1)).style.display='none'; document.getElementById('vs'+s).style.display='block'; }
+function startVoice(field){ const n=field==='name'?1:field==='id'?2:3,btn=document.getElementById('vb'+n),res=document.getElementById('vr'+n); if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){toast('⚠️ 음성 인식 미지원');return;} if(rec){rec.stop();rec=null;btn.classList.remove('rec');btn.textContent='🎤';return;} const SR=window.SpeechRecognition||window.webkitSpeechRecognition; rec=new SR();rec.lang='ko-KR';rec.interimResults=false; btn.classList.add('rec');btn.textContent='⏹';res.textContent='듣고 있습니다...'; rec.onresult=e=>{const t=e.results[0][0].transcript.trim();vData[field]=t;res.textContent=t;btn.classList.remove('rec');btn.textContent='🎤';rec=null; if(field==='name')document.getElementById('vn1').style.display='block'; if(field==='id')document.getElementById('vn2').style.display='block'; if(field==='pw')document.getElementById('vsave').style.display='block';}; rec.onerror=()=>{res.textContent='인식 실패. 다시 눌러주세요.';btn.classList.remove('rec');btn.textContent='🎤';rec=null;}; rec.onend=()=>{if(btn.classList.contains('rec')){btn.classList.remove('rec');btn.textContent='🎤';rec=null;}}; rec.start(); }
+async function saveVoice(){ const{name,id,pw}=vData; if(!name||!id||!pw){toast('⚠️ 인식되지 않은 항목이 있습니다');return;} const res=await apiAdd(currentUser,name,id,pw); accounts.push({id:res.id,name,userId:id,password:pw}); closeModal();renderList();toast('✅ 음성으로 저장되었습니다'); }
+
+function resetP(){ document.getElementById('photoPreview').style.display='none'; document.getElementById('ocrStatus').textContent=''; document.getElementById('ocrFields').style.display='none'; document.getElementById('photoInput').value=''; }
+async function handlePhoto(e){ const file=e.target.files[0];if(!file)return; const pv=document.getElementById('photoPreview'); pv.src=URL.createObjectURL(file);pv.style.display='block'; document.getElementById('ocrStatus').textContent='📡 AI가 사진을 읽는 중...'; document.getElementById('ocrFields').style.display='none'; try{ const b64=await toB64(file); const r=await callOCR(b64,file.type); document.getElementById('ocrName').value=r.site||''; document.getElementById('ocrId').value=r.id||''; document.getElementById('ocrPw').value=r.pw||''; document.getElementById('ocrStatus').textContent=r.site||r.id||r.pw?'✅ 인식 완료! 확인 후 저장해 주세요.':'⚠️ 직접 입력해 주세요.'; document.getElementById('ocrFields').style.display='block'; }catch(err){document.getElementById('ocrStatus').textContent='⚠️ 오류. 직접 입력해 주세요.';document.getElementById('ocrFields').style.display='block';} }
+function toB64(file){ return new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(x.result.split(',')[1]);x.onerror=j;x.readAsDataURL(file);}); }
+async function callOCR(base64,mediaType){ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:base64}},{type:'text',text:'이 이미지에서 로그인 정보를 추출하세요. JSON만 응답: {"site":"","id":"","pw":""}'}]}]})}); const d=await r.json(); const t=(d.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim(); return JSON.parse(t); }
+async function saveOcr(){ const name=document.getElementById('ocrName').value.trim(),userId=document.getElementById('ocrId').value.trim(),password=document.getElementById('ocrPw').value.trim(); if(!name||!userId||!password){toast('⚠️ 모든 항목을 입력해 주세요');return;} const res=await apiAdd(currentUser,name,userId,password); accounts.push({id:res.id,name,userId,password}); closeModal();renderList();toast('✅ 사진으로 저장되었습니다'); }
+
+function showSettings(){ document.getElementById('settingsOverlay').classList.add('show'); }
+function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('show'); }
+function startChangePin(){ cpBuf='';cpPhase='new';cpFirst=''; document.getElementById('cpErr').textContent=''; document.getElementById('cpMsg').textContent='새 PIN 4자리를 입력하세요'; dots(cpBuf,'cd'); document.getElementById('settingsContent').style.display='none'; document.getElementById('changePinContent').style.display='block'; }
+function cancelCP(){ document.getElementById('settingsContent').style.display='block'; document.getElementById('changePinContent').style.display='none'; }
+function cpInput(n){ if(cpBuf.length>=4)return; cpBuf+=n;dots(cpBuf,'cd'); if(cpBuf.length===4)setTimeout(processCP,120); }
+function cpDelete(){ cpBuf=cpBuf.slice(0,-1);dots(cpBuf,'cd'); }
+async function processCP(){ if(cpPhase==='new'){cpFirst=cpBuf;cpBuf='';cpPhase='confirm';document.getElementById('cpMsg').textContent='한 번 더 입력해 주세요';dots(cpBuf,'cd');}else{if(cpBuf===cpFirst){await apiChangePin(currentUser,cpBuf);closeSettings();toast('✅ 비밀번호가 변경되었습니다');}else{document.getElementById('cpErr').textContent='번호가 다릅니다';cpBuf='';cpPhase='new';cpFirst='';document.getElementById('cpMsg').textContent='새 PIN 4자리를 입력하세요';dots(cpBuf,'cd');}} }
+
+let toastT;
+function toast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000); }
+</script>
+</body>
+</html>
