@@ -263,9 +263,10 @@ let cpBuf='', cpPhase='new', cpFirst='';
 async function apiGet(params){
   const u=new URL(API);
   Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v)));
-  const r=await fetch(u.toString(),{method:'GET',redirect:'follow'});
-  const text=await r.text();
-  return JSON.parse(text);
+  const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(u.toString());
+  const r=await fetch(proxy);
+  const d=await r.json();
+  return JSON.parse(d.contents);
 }
 
 // 액션별 API
