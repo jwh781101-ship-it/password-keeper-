@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+button,a{touch-action:manipulation;}
 html,body{width:100%;height:100%}
 body{font-family:'Noto Sans KR',sans-serif;background:#F2F4F8;color:#111;position:fixed;inset:0;overflow:hidden}
 .screen{display:none;position:fixed;inset:0}
@@ -28,7 +29,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#F2F4F8;color:#111;positio
 .dot.on{background:#fff;border-color:#fff;transform:scale(1.3)}
 .perr{color:#FFB3B3;font-size:18px;font-weight:700;min-height:24px;text-align:center}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:340px}
-.pk{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.2);border-radius:16px;color:#fff;font-size:32px;font-weight:900;font-family:'Noto Sans KR',sans-serif;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,transform .1s}
+.pk{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.2);border-radius:16px;color:#fff;font-size:32px;font-weight:900;font-family:'Noto Sans KR',sans-serif;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,transform .1s;touch-action:manipulation;}
 .pk:active{background:rgba(255,255,255,.35);transform:scale(.93)}
 .pk.del{font-size:22px}
 
@@ -337,10 +338,8 @@ var curType='all';
 var formType='idpw';
 var photoFile=null;
 
-// 줌 차단
+// 핀치줌만 차단
 document.addEventListener('touchstart',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
-var _lt=0;
-document.addEventListener('touchend',function(e){var n=Date.now();if(n-_lt<300)e.preventDefault();_lt=n;},{passive:false});
 
 // 서비스워커
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
