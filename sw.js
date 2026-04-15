@@ -1,4 +1,4 @@
-const CACHE = 'pw-v3';
+const CACHE = 'pw-v6';
 const ASSETS = ['/password-keeper-/', '/password-keeper-/index.html', '/password-keeper-/manifest.json'];
 
 self.addEventListener('install', e => {
