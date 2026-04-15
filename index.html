@@ -108,6 +108,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#F2F4F8;color:#111;positio
 .id-photo-placeholder span:last-child{font-size:13px;color:#888;font-weight:700}
 
 .acts{display:flex;gap:8px;margin-top:8px}
+.drag-handle{font-size:20px;color:#CCC;cursor:grab;padding:0 6px 0 0;flex-shrink:0;display:flex;align-items:center;user-select:none;-webkit-user-select:none;}
+.drag-handle:active{cursor:grabbing;}
+.card.dragging{opacity:0.4;}
+.card.drag-over{border-color:#1A56DB;border-style:dashed;}
 .blink{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;font-size:15px;font-weight:700;color:#1A56DB;text-decoration:none;margin-bottom:12px;font-family:'Noto Sans KR',sans-serif;}
 .blink:active{background:#DBEAFE;}
 .bedit{flex:1;padding:12px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;font-size:15px;font-weight:700;color:#333;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
@@ -365,7 +369,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 })();
 
 function mapRow(r){
-  return {id:r.id,type:r.type||'idpw',name:r.name||'',field1:r.field1||r.user_id||'',field2:r.field2||r.password||'',field3:r.field3||'',memo:r.memo||'',image_url:r.image_url||'',url:r.url||''};
+  return {id:r.id,type:r.type||'idpw',name:r.name||'',field1:r.field1||r.user_id||'',field2:r.field2||r.password||'',field3:r.field3||'',memo:r.memo||'',image_url:r.image_url||'',url:r.url||'',sort_order:r.sort_order||0};
 }
 
 function ss(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');}
@@ -431,6 +435,8 @@ function render(){
     var searchOk=!q||a.name.toLowerCase().indexOf(q)>-1;
     return typeOk&&searchOk;
   });
+  // sort_order 순으로 정렬
+  f.sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
   var w=document.getElementById('list');
   if(!f.length){w.innerHTML='<div class="empty"><div class="ei">'+(q?'🔍':'📭')+'</div><p>'+(q?'검색 결과 없음':'등록된 항목이 없어요')+'</p><span>아래 + 버튼으로 추가하세요</span></div>';return;}
 
@@ -469,17 +475,20 @@ function render(){
 
     if(a.memo) body+='<div class="frow"><div class="flbl">📝 메모</div><div class="fmemo">'+esc(a.memo)+'</div></div>';
 
-    return '<div class="card" id="c'+a.id+'">' +
-      '<div class="card-hdr" onclick="tc(\''+a.id+'\')">' +
-        '<div class="card-ico '+ti.cls+'">'+ti.icon+'</div>' +
-        '<div class="card-ttl"><div class="card-name">'+esc(a.name)+'</div><div class="card-sub">'+esc(sub)+'</div></div>' +
+    return '<div class="card" id="c'+a.id+'" data-id="'+a.id+'" draggable="true">' +
+      '<div class="card-hdr">' +
+        '<div class="drag-handle" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">⠿</div>' +
+        '<div class="card-ico '+ti.cls+'" onclick="tc(\''+a.id+'\')">'+ti.icon+'</div>' +
+        '<div class="card-ttl" onclick="tc(\''+a.id+'\')"><div class="card-name">'+esc(a.name)+'</div><div class="card-sub">'+esc(sub)+'</div></div>' +
         '<span class="card-badge '+ti.badge+'">'+ti.label+'</span>' +
-        '<span class="card-arr">▼</span>' +
+        '<span class="card-arr" onclick="tc(\''+a.id+'\')">▼</span>' +
       '</div>' +
       '<div class="card-body"><div class="card-inner">'+body+
         '<div class="acts"><button class="bedit" onclick="openEdit(\''+a.id+'\')">✏️ 수정</button><button class="bdel" onclick="del(\''+a.id+'\')">🗑️ 삭제</button></div>' +
       '</div></div></div>';
   }).join('');
+
+  initDrag();
 }
 
 function tc(id){document.getElementById('c'+id).classList.toggle('open');}
@@ -604,6 +613,99 @@ async function procCP(){
 
 var tt;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2500);}
+
+// ── 드래그 순서 변경 ──
+var dragSrc=null;
+function initDrag(){
+  var cards=document.querySelectorAll('#list .card[draggable]');
+  cards.forEach(function(card){
+    card.addEventListener('dragstart',function(e){
+      dragSrc=card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend',function(){
+      card.classList.remove('dragging');
+      document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+    });
+    card.addEventListener('dragover',function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      if(card!==dragSrc){
+        document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+        card.classList.add('drag-over');
+      }
+    });
+    card.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(dragSrc&&card!==dragSrc){
+        var list=document.getElementById('list');
+        var cards=Array.from(list.querySelectorAll('.card[data-id]'));
+        var fromIdx=cards.indexOf(dragSrc);
+        var toIdx=cards.indexOf(card);
+        // DOM 순서 변경
+        if(fromIdx<toIdx){list.insertBefore(dragSrc,card.nextSibling);}
+        else{list.insertBefore(dragSrc,card);}
+        // 순서 저장
+        saveOrder();
+      }
+      card.classList.remove('drag-over');
+    });
+
+    // 터치 드래그 (모바일)
+    var touchStartY=0, touchEl=null;
+    card.addEventListener('touchstart',function(e){
+      if(!e.target.closest('.drag-handle'))return;
+      touchEl=card;
+      touchStartY=e.touches[0].clientY;
+      card.classList.add('dragging');
+    },{passive:true});
+    card.addEventListener('touchmove',function(e){
+      if(!touchEl)return;
+      e.preventDefault();
+      var y=e.touches[0].clientY;
+      var list=document.getElementById('list');
+      var cards=Array.from(list.querySelectorAll('.card[data-id]'));
+      var target=null;
+      cards.forEach(function(c){
+        if(c===touchEl)return;
+        var r=c.getBoundingClientRect();
+        if(y>r.top&&y<r.bottom)target=c;
+      });
+      if(target){
+        document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+        target.classList.add('drag-over');
+        var fromIdx=cards.indexOf(touchEl);
+        var toIdx=cards.indexOf(target);
+        if(fromIdx<toIdx){list.insertBefore(touchEl,target.nextSibling);}
+        else{list.insertBefore(touchEl,target);}
+      }
+    },{passive:false});
+    card.addEventListener('touchend',function(){
+      if(!touchEl)return;
+      touchEl.classList.remove('dragging');
+      document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+      touchEl=null;
+      saveOrder();
+    },{passive:true});
+  });
+}
+
+async function saveOrder(){
+  var cards=Array.from(document.querySelectorAll('#list .card[data-id]'));
+  var updates=[];
+  cards.forEach(function(c,i){
+    var id=c.dataset.id;
+    var acc=accounts.find(function(a){return a.id===id;});
+    if(acc){acc.sort_order=i;updates.push({id:id,order:i});}
+  });
+  localStorage.setItem('pk_accounts',JSON.stringify(accounts));
+  // Supabase에 순서 저장
+  for(var i=0;i<updates.length;i++){
+    await sb('/rest/v1/accounts?id=eq.'+updates[i].id,{method:'PATCH',body:JSON.stringify({sort_order:updates[i].order})});
+  }
+  toast('✅ 순서가 저장되었습니다');
+}
 </script>
 </body>
 </html>
