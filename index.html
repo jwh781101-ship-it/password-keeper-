@@ -108,8 +108,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#F2F4F8;color:#111;positio
 .id-photo-placeholder span:last-child{font-size:13px;color:#888;font-weight:700}
 
 .acts{display:flex;gap:8px;margin-top:8px}
-.drag-handle{font-size:20px;color:#CCC;cursor:grab;padding:0 6px 0 0;flex-shrink:0;display:flex;align-items:center;user-select:none;-webkit-user-select:none;}
-.drag-handle:active{cursor:grabbing;}
+.drag-handle{font-size:22px;color:#BBB;cursor:grab;padding:0 10px 0 0;flex-shrink:0;display:flex;align-items:center;user-select:none;-webkit-user-select:none;min-width:36px;justify-content:center;touch-action:none;}
+.drag-handle:active{cursor:grabbing;color:#888;}
 .card.dragging{opacity:0.4;}
 .card.drag-over{border-color:#1A56DB;border-style:dashed;}
 .blink{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;font-size:15px;font-weight:700;color:#1A56DB;text-decoration:none;margin-bottom:12px;font-family:'Noto Sans KR',sans-serif;}
@@ -616,95 +616,107 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 
 // ── 드래그 순서 변경 ──
 var dragSrc=null;
+
 function initDrag(){
-  var cards=document.querySelectorAll('#list .card[draggable]');
+  var list=document.getElementById('list');
+  var cards=Array.from(list.querySelectorAll('.card[data-id]'));
+
   cards.forEach(function(card){
+    var handle=card.querySelector('.drag-handle');
+    if(!handle)return;
+
+    // PC 드래그
+    card.setAttribute('draggable','true');
     card.addEventListener('dragstart',function(e){
       dragSrc=card;
-      card.classList.add('dragging');
+      setTimeout(function(){card.classList.add('dragging');},0);
       e.dataTransfer.effectAllowed='move';
     });
     card.addEventListener('dragend',function(){
       card.classList.remove('dragging');
-      document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
     });
     card.addEventListener('dragover',function(e){
       e.preventDefault();
-      e.dataTransfer.dropEffect='move';
       if(card!==dragSrc){
-        document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
+        list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
         card.classList.add('drag-over');
       }
     });
     card.addEventListener('drop',function(e){
       e.preventDefault();
       if(dragSrc&&card!==dragSrc){
-        var list=document.getElementById('list');
-        var cards=Array.from(list.querySelectorAll('.card[data-id]'));
-        var fromIdx=cards.indexOf(dragSrc);
-        var toIdx=cards.indexOf(card);
-        // DOM 순서 변경
-        if(fromIdx<toIdx){list.insertBefore(dragSrc,card.nextSibling);}
-        else{list.insertBefore(dragSrc,card);}
-        // 순서 저장
+        var all=Array.from(list.querySelectorAll('.card[data-id]'));
+        var fromIdx=all.indexOf(dragSrc);
+        var toIdx=all.indexOf(card);
+        if(fromIdx<toIdx)list.insertBefore(dragSrc,card.nextSibling);
+        else list.insertBefore(dragSrc,card);
         saveOrder();
       }
       card.classList.remove('drag-over');
     });
 
-    // 터치 드래그 (모바일)
-    var touchStartY=0, touchEl=null;
-    card.addEventListener('touchstart',function(e){
-      if(!e.target.closest('.drag-handle'))return;
-      touchEl=card;
-      touchStartY=e.touches[0].clientY;
-      card.classList.add('dragging');
-    },{passive:true});
-    card.addEventListener('touchmove',function(e){
-      if(!touchEl)return;
+    // 모바일 터치 - 핸들에만 붙임
+    handle.addEventListener('touchstart',function(e){
       e.preventDefault();
-      var y=e.touches[0].clientY;
-      var list=document.getElementById('list');
-      var cards=Array.from(list.querySelectorAll('.card[data-id]'));
+      e.stopPropagation();
+      dragSrc=card;
+      card.classList.add('dragging');
+    },{passive:false});
+
+    handle.addEventListener('touchmove',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(!dragSrc)return;
+      var touch=e.touches[0];
+      var all=Array.from(list.querySelectorAll('.card[data-id]'));
       var target=null;
-      cards.forEach(function(c){
-        if(c===touchEl)return;
+      all.forEach(function(c){
+        if(c===dragSrc)return;
         var r=c.getBoundingClientRect();
-        if(y>r.top&&y<r.bottom)target=c;
+        var mid=(r.top+r.bottom)/2;
+        if(touch.clientY>r.top&&touch.clientY<r.bottom){
+          target=c;
+        }
       });
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
       if(target){
-        document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
         target.classList.add('drag-over');
-        var fromIdx=cards.indexOf(touchEl);
-        var toIdx=cards.indexOf(target);
-        if(fromIdx<toIdx){list.insertBefore(touchEl,target.nextSibling);}
-        else{list.insertBefore(touchEl,target);}
+        var all2=Array.from(list.querySelectorAll('.card[data-id]'));
+        var fromIdx=all2.indexOf(dragSrc);
+        var toIdx=all2.indexOf(target);
+        if(fromIdx<toIdx)list.insertBefore(dragSrc,target.nextSibling);
+        else list.insertBefore(dragSrc,target);
       }
     },{passive:false});
-    card.addEventListener('touchend',function(){
-      if(!touchEl)return;
-      touchEl.classList.remove('dragging');
-      document.querySelectorAll('#list .card').forEach(function(c){c.classList.remove('drag-over');});
-      touchEl=null;
+
+    handle.addEventListener('touchend',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(!dragSrc)return;
+      dragSrc.classList.remove('dragging');
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
+      dragSrc=null;
       saveOrder();
-    },{passive:true});
+    },{passive:false});
   });
 }
 
 async function saveOrder(){
-  var cards=Array.from(document.querySelectorAll('#list .card[data-id]'));
+  var list=document.getElementById('list');
+  var cards=Array.from(list.querySelectorAll('.card[data-id]'));
   var updates=[];
   cards.forEach(function(c,i){
     var id=c.dataset.id;
     var acc=accounts.find(function(a){return a.id===id;});
-    if(acc){acc.sort_order=i;updates.push({id:id,order:i});}
+    if(acc&&acc.sort_order!==i){acc.sort_order=i;updates.push({id:id,order:i});}
+    else if(acc)acc.sort_order=i;
   });
   localStorage.setItem('pk_accounts',JSON.stringify(accounts));
-  // Supabase에 순서 저장
   for(var i=0;i<updates.length;i++){
     await sb('/rest/v1/accounts?id=eq.'+updates[i].id,{method:'PATCH',body:JSON.stringify({sort_order:updates[i].order})});
   }
-  toast('✅ 순서가 저장되었습니다');
+  toast('✅ 순서 저장됨');
 }
 </script>
 </body>
